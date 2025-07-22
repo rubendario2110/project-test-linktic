@@ -1,6 +1,6 @@
-package com.example.inventory.controller;
+package com.testbackend.inventory.controller;
 
-import com.example.inventory.service.InventoryService;
+import com.testbackend.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
