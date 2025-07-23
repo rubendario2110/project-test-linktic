@@ -53,7 +53,7 @@ public class PurchaseService {
                 .quantity(req.quantity())
                 .unitPrice(price)
                 .totalPrice(price.multiply(BigDecimal.valueOf(req.quantity())))
-                .createdAt(Instant.now()) // Set manually to avoid null
+                .createdAt(Instant.now())
                 .build();
         purchase = purchaseRepo.save(purchase);
 
