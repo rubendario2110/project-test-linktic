@@ -2,6 +2,7 @@ package com.testbackend.products;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testbackend.products.dto.ProductRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,9 +30,14 @@ class ProductIntegrationTest {
 
     private MockMvc mockMvc;
 
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    }
+
     @Test
     void contextLoads() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        assert mockMvc != null;
     }
 
     @Test
