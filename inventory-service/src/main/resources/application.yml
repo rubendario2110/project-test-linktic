@@ -1,11 +1,13 @@
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:8082}
 
 spring:
+  application:
+    name: inventory-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -13,9 +15,29 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
 internal:
   api-key: ${INTERNAL_API_KEY}
 products:
   service:
     base:
       url: ${PRODUCTS_SERVICE_BASE_URL}
+
+logging:
+  level:
+    com.testbackend.inventory.client.ProductClient: DEBUG
+    feign: DEBUG
+
+management:
+  metrics:
+    binders:
+      processor:
+        enabled: false

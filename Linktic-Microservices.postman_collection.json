@@ -1,0 +1,609 @@
+{
+	"info": {
+		"_postman_id": "linktic-microservices-collection",
+		"name": "Linktic Microservices",
+		"description": "Colección para probar los microservicios de Linktic (Products, Inventory, Eureka, API Gateway)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Eureka Server",
+			"item": [
+				{
+					"name": "Get Eureka Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8761",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8761"
+						},
+						"description": "Acceder al dashboard de Eureka Server"
+					}
+				},
+				{
+					"name": "Get Eureka Instances",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8761/eureka/apps",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8761",
+							"path": [
+								"eureka",
+								"apps"
+							]
+						},
+						"description": "Obtener todas las instancias registradas en Eureka"
+					}
+				}
+			],
+			"description": "Endpoints para el servidor de descubrimiento Eureka"
+		},
+		{
+			"name": "Products Service",
+			"item": [
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Laptop Gaming\",\n  \"price\": 1299.99,\n  \"description\": \"Laptop gaming de alto rendimiento con RTX 4060\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"products"
+							]
+						},
+						"description": "Crear un nuevo producto"
+					}
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/products/{{product_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"products",
+								"{{product_id}}"
+							]
+						},
+						"description": "Obtener un producto por su ID"
+					}
+				},
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"products"
+							]
+						},
+						"description": "Obtener todos los productos"
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Laptop Gaming Pro\",\n  \"price\": 1499.99,\n  \"description\": \"Laptop gaming de alto rendimiento con RTX 4070 actualizada\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/products/{{product_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"products",
+								"{{product_id}}"
+							]
+						},
+						"description": "Actualizar un producto existente"
+					}
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/products/{{product_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"products",
+								"{{product_id}}"
+							]
+						},
+						"description": "Eliminar un producto"
+					}
+				}
+			],
+			"description": "Endpoints para el microservicio de productos"
+		},
+		{
+			"name": "Inventory Service",
+			"item": [
+				{
+					"name": "Get Inventory by Product ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/inventory/{{product_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"inventory",
+								"{{product_id}}"
+							]
+						},
+						"description": "Obtener el inventario de un producto específico"
+					}
+				},
+				{
+					"name": "Update Inventory Quantity",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 50\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8082/inventory/{{product_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"inventory",
+								"{{product_id}}"
+							]
+						},
+						"description": "Actualizar la cantidad en inventario de un producto"
+					}
+				},
+				{
+					"name": "Create Purchase",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{product_id}}\",\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8082/purchases",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"purchases"
+							]
+						},
+						"description": "Crear una nueva compra (proceso completo de compra)"
+					}
+				},
+				{
+					"name": "Get Purchase by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/purchases/{{purchase_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"purchases",
+								"{{purchase_id}}"
+							]
+						},
+						"description": "Obtener una compra por su ID"
+					}
+				},
+				{
+					"name": "Get All Purchases",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/purchases",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"purchases"
+							]
+						},
+						"description": "Obtener todas las compras"
+					}
+				}
+			],
+			"description": "Endpoints para el microservicio de inventario"
+		},
+		{
+			"name": "API Gateway",
+			"item": [
+				{
+					"name": "Get Products via Gateway",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"products"
+							]
+						},
+						"description": "Obtener productos a través del API Gateway"
+					}
+				},
+				{
+					"name": "Get Product by ID via Gateway",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/products/{{product_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"products",
+								"{{product_id}}"
+							]
+						},
+						"description": "Obtener un producto por ID a través del API Gateway"
+					}
+				},
+				{
+					"name": "Create Product via Gateway",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Smartphone Galaxy S24\",\n  \"price\": 899.99,\n  \"description\": \"Smartphone de última generación con IA integrada\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"products"
+							]
+						},
+						"description": "Crear un producto a través del API Gateway"
+					}
+				},
+				{
+					"name": "Get Inventory via Gateway",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/inventory/{{product_id}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"inventory",
+								"{{product_id}}"
+							]
+						},
+						"description": "Obtener inventario a través del API Gateway"
+					}
+				},
+				{
+					"name": "Create Purchase via Gateway",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{product_id}}\",\n  \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/purchases",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"purchases"
+							]
+						},
+						"description": "Crear una compra a través del API Gateway"
+					}
+				}
+			],
+			"description": "Endpoints para el API Gateway"
+		},
+		{
+			"name": "Health Checks",
+			"item": [
+				{
+					"name": "Eureka Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8761/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8761",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verificar el estado de salud del Eureka Server"
+					}
+				},
+				{
+					"name": "Products Service Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verificar el estado de salud del Products Service"
+					}
+				},
+				{
+					"name": "Inventory Service Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verificar el estado de salud del Inventory Service"
+					}
+				},
+				{
+					"name": "API Gateway Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verificar el estado de salud del API Gateway"
+					}
+				}
+			],
+			"description": "Endpoints para verificar el estado de salud de los servicios"
+		},
+		{
+			"name": "Swagger Documentation",
+			"item": [
+				{
+					"name": "Products Service Swagger",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/swagger-ui/index.html",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"swagger-ui",
+								"index.html"
+							]
+						},
+						"description": "Documentación Swagger del Products Service"
+					}
+				},
+				{
+					"name": "Inventory Service Swagger",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/swagger-ui/index.html",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"swagger-ui",
+								"index.html"
+							]
+						},
+						"description": "Documentación Swagger del Inventory Service"
+					}
+				},
+				{
+					"name": "API Gateway Swagger",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/swagger-ui/index.html",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"swagger-ui",
+								"index.html"
+							]
+						},
+						"description": "Documentación Swagger del API Gateway"
+					}
+				}
+			],
+			"description": "Enlaces a la documentación Swagger de los servicios"
+		}
+	],
+	"variable": [
+		{
+			"key": "product_id",
+			"value": "550e8400-e29b-41d4-a716-446655440000",
+			"description": "ID de ejemplo de un producto"
+		},
+		{
+			"key": "purchase_id",
+			"value": "550e8400-e29b-41d4-a716-446655440001",
+			"description": "ID de ejemplo de una compra"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script que se ejecuta antes de cada request",
+					"console.log('Ejecutando request: ' + pm.request.name);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script que se ejecuta después de cada request",
+					"pm.test('Status code is 200', function () {",
+					"    pm.response.to.have.status(200);",
+					"});",
+					"",
+					"pm.test('Response time is less than 2000ms', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"});"
+				]
+			}
+		}
+	]
+} 

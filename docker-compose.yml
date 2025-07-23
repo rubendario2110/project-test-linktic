@@ -1,99 +1,85 @@
-version: '3.8'
-
 services:
-  # Base de datos PostgreSQL
-  postgres:
-    image: postgres:15-alpine
-    container_name: linktic-postgres
-    environment:
-      POSTGRES_DB: linktic_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:15
     ports:
       - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=linktic_db
+    networks:
+      - my_network
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
-    networks:
-      - linktic-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Microservicio de Productos
-  products-service:
+  eureka-server:
+    container_name: eureka-server
+    image: eureka-server
     build:
-      context: ./products-service
-      dockerfile: Dockerfile
-    container_name: linktic-products-service
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/linktic_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      INTERNAL_API_KEY: linktic-internal-key-2024
-      SERVER_PORT: 8081
+      context: ./eureka-server
     ports:
-      - "8081:8081"
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - "8761:8761"
     networks:
-      - linktic-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - my_network
+    restart: "no"
 
-  # Microservicio de Inventario
-  inventory-service:
+  api-gateway:
+    container_name: api-gateway
+    image: api-gateway
     build:
-      context: ./inventory-service
-      dockerfile: Dockerfile
-    container_name: linktic-inventory-service
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/linktic_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      INTERNAL_API_KEY: linktic-internal-key-2024
-      PRODUCTS_SERVICE_BASE_URL: http://products-service:8081
-      SERVER_PORT: 8080
+      context: ./api-gateway
     ports:
       - "8080:8080"
+    networks:
+      - my_network
     depends_on:
-      postgres:
-        condition: service_healthy
-      products-service:
-        condition: service_healthy
-    networks:
-      - linktic-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - eureka-server
+    restart: "no"
 
-  # Redis (opcional para caché)
-  redis:
-    image: redis:7-alpine
-    container_name: linktic-redis
+  products-service:
+    container_name: products-service
+    image: products-service
+    build:
+      context: ./products-service
     ports:
-      - "6379:6379"
+      - "8081:8081"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres_db:5432/linktic_db
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=password
+      - INTERNAL_API_KEY=linktic-internal-key-2024
     networks:
-      - linktic-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      - my_network
+    depends_on:
+      - postgres_db
+      - eureka-server
+    restart: "no"
 
-volumes:
-  postgres_data:
+  inventory-service:
+    container_name: inventory-service
+    image: inventory-service
+    build:
+      context: ./inventory-service
+    ports:
+      - "8082:8082"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres_db:5432/linktic_db
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=password
+      - INTERNAL_API_KEY=linktic-internal-key-2024
+    networks:
+      - my_network
+    depends_on:
+      - postgres_db
+      - eureka-server
+      - products-service
+    restart: "no"
 
 networks:
-  linktic-network:
-    driver: bridge 
+  my_network:
+    driver: bridge
+
+volumes:
+  postgres_data: 
