@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -66,10 +66,20 @@ class PurchaseServiceTest {
     @Test
     void purchase_WhenValidRequest_ShouldReturnPurchaseResponse() {
         // Given
-        when(restTemplate.getForObject(anyString(), any())).thenReturn(mockProductResponse);
+        when(restTemplate.getForObject(anyString(), any(Class.class))).thenReturn(mockProductResponse);
         when(inventoryRepository.findById(productId)).thenReturn(Optional.of(testInventory));
         when(inventoryRepository.save(any(Inventory.class))).thenReturn(testInventory);
-        when(purchaseRepository.save(any())).thenReturn(any());
+        
+        // Create a mock Purchase object for the return value
+        com.testbackend.inventory.domain.Purchase mockPurchase = com.testbackend.inventory.domain.Purchase.builder()
+                .id(UUID.randomUUID())
+                .productId(productId)
+                .quantity(2)
+                .unitPrice(new BigDecimal("99.99"))
+                .totalPrice(new BigDecimal("199.98"))
+                .createdAt(Instant.now())
+                .build();
+        when(purchaseRepository.save(any())).thenReturn(mockPurchase);
 
         // When
         PurchaseResponse result = purchaseService.purchase(testPurchaseRequest);
@@ -85,7 +95,7 @@ class PurchaseServiceTest {
     @Test
     void purchase_WhenProductNotFound_ShouldThrowException() {
         // Given
-        when(restTemplate.getForObject(anyString(), any())).thenReturn(null);
+        when(restTemplate.getForObject(anyString(), any(Class.class))).thenReturn(null);
 
         // When & Then
         assertThrows(RuntimeException.class, () -> purchaseService.purchase(testPurchaseRequest));
@@ -94,7 +104,7 @@ class PurchaseServiceTest {
     @Test
     void purchase_WhenInsufficientStock_ShouldThrowException() {
         // Given
-        when(restTemplate.getForObject(anyString(), any())).thenReturn(mockProductResponse);
+        when(restTemplate.getForObject(anyString(), any(Class.class))).thenReturn(mockProductResponse);
         when(inventoryRepository.findById(productId)).thenReturn(Optional.of(testInventory));
 
         PurchaseRequest invalidRequest = new PurchaseRequest(productId, 15);

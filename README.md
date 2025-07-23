@@ -6,11 +6,14 @@ Sistema de microservicios que implementa la gestión de productos e inventario c
 
 - **Products Service**: Gestión de catálogo de productos
 - **Inventory Service**: Gestión de inventario y compras
-- **Comunicación HTTP**: Entre servicios usando OpenFeign
+- **API Gateway**: Punto de entrada único con routing y autenticación
+- **Eureka Server**: Service discovery para microservicios
+- **Comunicación HTTP**: Entre servicios usando RestTemplate con LoadBalancer
 - **Base de datos**: PostgreSQL compartida
 - **Containerización**: Docker y Docker Compose
-- **Testing**: Pruebas unitarias y de integración
-- **Documentación**: Swagger/OpenAPI
+- **Testing**: Pruebas unitarias y de integración con 80% de cobertura
+- **Documentación**: Swagger/OpenAPI integrado
+- **Cobertura de Código**: JaCoCo con reportes HTML
 
 ## 🏗️ Arquitectura
 
@@ -18,14 +21,19 @@ Sistema de microservicios que implementa la gestión de productos e inventario c
 ┌─────────────────┐    HTTP/JSON API    ┌─────────────────┐
 │   API Gateway   │ ◄──────────────────► │   Eureka        │
 │   (Port 8080)   │   Service Discovery │   Server        │
-└─────────────────┘                     │   (Port 8761)   │
-         │                              └─────────────────┘
+│                 │                     │   (Port 8761)   │
+│   - Routing     │                     │                 │
+│   - Auth Filter │                     │                 │
+└─────────────────┘                     └─────────────────┘
          │                                        ▲
          ▼                                        │
 ┌─────────────────┐    HTTP/JSON API    ┌─────────────────┐
 │   Inventory     │ ◄──────────────────► │   Products      │
-│   Service       │   OpenFeign +       │   Service       │
-│   (Port 8082)   │   Service Discovery │   (Port 8081)   │
+│   Service       │   RestTemplate +    │   Service       │
+│   (Port 8082)   │   LoadBalancer      │   (Port 8081)   │
+│                 │                     │                 │
+│   - Inventory   │                     │   - Products    │
+│   - Purchases   │                     │   - Catalog     │
 └─────────────────┘                     └─────────────────┘
          │                                        │
          ▼                                        ▼
@@ -52,7 +60,7 @@ Sistema de microservicios que implementa la gestión de productos e inventario c
 
 ### 3. **Comunicación entre Microservicios**
 - **HTTP REST + JSON API**: Estándar JSON API para todas las respuestas
-- **OpenFeign**: Cliente HTTP declarativo para comunicación entre servicios
+- **RestTemplate con @LoadBalanced**: Cliente HTTP para comunicación entre servicios
 - **Eureka Service Discovery**: Registro y descubrimiento automático de servicios
 - **API Gateway**: Punto de entrada único con routing y filtros
 - **API Key Authentication**: Autenticación básica entre servicios
@@ -69,13 +77,25 @@ Sistema de microservicios que implementa la gestión de productos e inventario c
 
 **Flujo de compra implementado**:
 1. Inventory Service recibe solicitud de compra
-2. Consulta información del producto al Products Service
+2. Consulta información del producto al Products Service via RestTemplate
 3. Valida disponibilidad en inventario
 4. Actualiza cantidad disponible
 5. Registra la compra
 6. Retorna información de la compra
 
-### 5. **Containerización**
+### 5. **Testing y Cobertura de Código**
+- **JUnit 5**: Framework de testing
+- **Mockito**: Mocking para pruebas unitarias
+- **Spring Boot Test**: Testing de integración
+- **JaCoCo**: Análisis de cobertura de código (objetivo: 80%)
+- **H2 Database**: Base de datos en memoria para tests
+
+### 6. **Documentación API**
+- **Swagger/OpenAPI 3**: Documentación automática de APIs
+- **SpringDoc**: Integración con Spring Boot
+- **UI Interactiva**: Interfaz web para probar endpoints
+
+### 7. **Containerización**
 - **Docker**: Para containerización individual de servicios
 - **Docker Compose**: Para orquestación y networking entre servicios
 
@@ -86,11 +106,14 @@ Sistema de microservicios que implementa la gestión de productos e inventario c
 - **Spring Cloud Netflix Eureka** (Service Discovery)
 - **Spring Cloud Gateway** (API Gateway)
 - **Spring Data JPA**
-- **Spring Cloud OpenFeign**
+- **RestTemplate con LoadBalancer** (Comunicación entre servicios)
 - **PostgreSQL 15**
+- **H2 Database** (Testing)
 - **Docker & Docker Compose**
 - **Maven**
-- **Swagger/OpenAPI**
+- **JUnit 5 + Mockito** (Testing)
+- **JaCoCo** (Cobertura de código)
+- **Swagger/OpenAPI 3** (Documentación API)
 
 ## 📋 Prerrequisitos
 
@@ -157,8 +180,8 @@ curl http://localhost:8081/products
 curl http://localhost:8082/inventory/550e8400-e29b-41d4-a716-446655440000
 
 # Probar endpoints a través del Gateway
-curl http://localhost:8080/products-service/products
-curl http://localhost:8080/inventory-service/inventory/550e8400-e29b-41d4-a716-446655440000
+curl http://localhost:8080/api/products
+curl http://localhost:8080/api/inventory/550e8400-e29b-41d4-a716-446655440000
 ```
 
 ## 📚 API Documentation
@@ -171,13 +194,16 @@ curl http://localhost:8080/inventory-service/inventory/550e8400-e29b-41d4-a716-4
 - **Swagger Products**: http://localhost:8081/swagger-ui/index.html
 - **Swagger Inventory**: http://localhost:8082/swagger-ui/index.html
 
+> 📖 **Guía completa de Swagger**: Consulta [SWAGGER_GUIDE.md](SWAGGER_GUIDE.md) para instrucciones detalladas de uso.
+
 ### Endpoints principales
 
 #### Products Service (JSON API)
 ```http
 # Crear producto
-POST /products
+POST /api/products
 Content-Type: application/json
+X-INTERNAL-API-KEY: linktic-internal-key-2024
 
 {
   "name": "Laptop Gaming",
@@ -200,16 +226,19 @@ Content-Type: application/json
 }
 
 # Obtener producto
-GET /products/{id}
+GET /api/products/{id}
+X-INTERNAL-API-KEY: linktic-internal-key-2024
 
 # Listar productos
-GET /products?page=0&size=20
+GET /api/products?page=0&size=20
+X-INTERNAL-API-KEY: linktic-internal-key-2024
 ```
 
 #### Inventory Service (JSON API)
 ```http
 # Consultar inventario
-GET /inventory/{productId}
+GET /api/inventory/{productId}
+X-INTERNAL-API-KEY: linktic-internal-key-2024
 
 # Respuesta JSON API
 {
@@ -224,8 +253,9 @@ GET /inventory/{productId}
 }
 
 # Actualizar inventario
-PATCH /inventory/{productId}
+PATCH /api/inventory/{productId}
 Content-Type: application/json
+X-INTERNAL-API-KEY: linktic-internal-key-2024
 
 {
   "data": {
@@ -236,8 +266,9 @@ Content-Type: application/json
 }
 
 # Realizar compra
-POST /purchases
+POST /api/purchases
 Content-Type: application/json
+X-INTERNAL-API-KEY: linktic-internal-key-2024
 
 {
   "productId": "550e8400-e29b-41d4-a716-446655440000",
@@ -260,33 +291,57 @@ Content-Type: application/json
 }
 ```
 
-## 🧪 Testing
+## 🧪 Testing y Cobertura de Código
 
-### Tests manuales
+### Ejecutar Tests y Generar Cobertura
 ```bash
-# Crear producto
-curl -X POST http://localhost:8081/products \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Test Product", "price": 99.99, "description": "Test Description"}'
+# Ejecutar script completo de testing y cobertura
+./run-tests-with-coverage.sh
 
-# Realizar compra
-curl -X POST http://localhost:8082/purchases \
-  -H "Content-Type: application/json" \
-  -d '{"productId": "PRODUCT_ID", "quantity": 1}'
+# O ejecutar individualmente por servicio
+cd products-service
+mvn test
+
+cd ../inventory-service
+mvn test
+```
+
+### Ver Reportes de Cobertura
+```bash
+# Abrir reportes en navegador
+# Products Service
+open products-service/target/site/jacoco/index.html
+
+# Inventory Service
+open inventory-service/target/site/jacoco/index.html
 ```
 
 ### Tests manuales
 ```bash
 # Crear producto
-curl -X POST http://localhost:8081/products \
+curl -X POST http://localhost:8080/api/products \
   -H "Content-Type: application/json" \
+  -H "X-INTERNAL-API-KEY: linktic-internal-key-2024" \
   -d '{"name": "Test Product", "price": 99.99, "description": "Test Description"}'
 
 # Realizar compra
-curl -X POST http://localhost:8082/purchases \
+curl -X POST http://localhost:8080/api/purchases \
   -H "Content-Type: application/json" \
-  -d '{"productId": "PRODUCT_ID", "quantity": 1}'
+  -H "X-INTERNAL-API-KEY: linktic-internal-key-2024" \
+  -d '{"productId": "550e8400-e29b-41d4-a716-446655440001", "quantity": 2}'
 ```
+
+### Tipos de Tests Implementados
+
+#### Products Service
+- **Unit Tests**: `ProductServiceTest`, `ProductControllerTest`
+- **Integration Tests**: `ProductIntegrationTest`
+- **Cobertura objetivo**: 80%
+
+#### Inventory Service
+- **Unit Tests**: `InventoryServiceTest`, `PurchaseServiceTest`, `InventoryControllerTest`, `PurchaseControllerTest`
+- **Integration Tests**: `InventoryIntegrationTest`
+- **Cobertura objetivo**: 80%
 
 ## 🔍 Monitoreo
 
@@ -338,11 +393,26 @@ mvn clean compile
 # Ejecutar tests
 mvn test
 
+# Ejecutar tests con cobertura
+mvn clean test jacoco:report
+
 # Construir JAR
 mvn clean package
 
 # Ejecutar localmente
 mvn spring-boot:run
+```
+
+### Testing y Cobertura
+```bash
+# Ejecutar script completo
+./run-tests-with-coverage.sh
+
+# Verificar cobertura
+mvn jacoco:check
+
+# Generar reporte de cobertura
+mvn jacoco:report
 ```
 
 ## 🤖 Uso de Herramientas de IA en el Desarrollo
@@ -371,10 +441,34 @@ mvn spring-boot:run
 3. **Validación de comunicación**: Pruebas de integración entre servicios
 4. **Code review**: Revisión de patrones y mejores prácticas
 
+### Mejores Prácticas Aplicadas
+
+- **Validación manual**: Todo el código generado por IA es revisado manualmente
+- **Testing exhaustivo**: Implementación de tests unitarios y de integración
+- **Documentación**: Generación de documentación técnica detallada
+- **Arquitectura**: Validación de decisiones arquitectónicas con patrones establecidos
+
 ## 📊 Estructura del Proyecto
 
 ```
 project-test-linktic/
+├── api-gateway/              # API Gateway con routing y autenticación
+│   ├── src/main/java/
+│   │   └── com/testbackend/gateway/
+│   │       ├── config/       # Configuraciones del gateway
+│   │       └── ApiGatewayApplication.java
+│   ├── src/main/resources/
+│   │   └── application.yml   # Configuración de rutas
+│   ├── Dockerfile
+│   └── pom.xml
+├── eureka-server/            # Service Discovery
+│   ├── src/main/java/
+│   │   └── com/testbackend/eureka/
+│   │       └── EurekaServerApplication.java
+│   ├── src/main/resources/
+│   │   └── application.yml
+│   ├── Dockerfile
+│   └── pom.xml
 ├── products-service/          # Microservicio de productos
 │   ├── src/main/java/
 │   │   ├── controller/        # Controladores REST
@@ -384,6 +478,7 @@ project-test-linktic/
 │   │   ├── dto/              # Data Transfer Objects
 │   │   └── config/           # Configuraciones
 │   ├── src/test/java/        # Tests unitarios e integración
+│   ├── src/test/resources/   # Configuración de tests
 │   ├── Dockerfile
 │   └── pom.xml
 ├── inventory-service/         # Microservicio de inventario
@@ -393,25 +488,31 @@ project-test-linktic/
 │   │   ├── repository/       # Acceso a datos
 │   │   ├── domain/           # Entidades JPA
 │   │   ├── dto/              # Data Transfer Objects
-│   │   ├── client/           # Cliente Feign
-│   │   └── config/           # Configuraciones
+│   │   └── config/           # Configuraciones (RestTemplate)
 │   ├── src/test/java/        # Tests unitarios e integración
+│   ├── src/test/resources/   # Configuración de tests
 │   ├── Dockerfile
 │   └── pom.xml
 ├── docker-compose.yml         # Configuración de contenedores
 ├── init-db.sql               # Script de inicialización de BD
+├── run-tests-with-coverage.sh # Script para ejecutar tests y cobertura
 ├── Linktic-Microservices.postman_collection.json # Colección Postman
+├── SWAGGER_GUIDE.md          # Guía completa de uso de Swagger
 └── README.md
 ```
 
 ## 🔮 Mejoras Futuras
 
+- [x] ✅ Implementar comunicación entre servicios con RestTemplate
+- [x] ✅ Agregar tests unitarios y de integración
+- [x] ✅ Implementar cobertura de código con JaCoCo
+- [x] ✅ Configurar Swagger/OpenAPI para documentación
+- [x] ✅ Implementar API Gateway con routing
+- [x] ✅ Configurar Service Discovery con Eureka
 - [ ] Implementar Circuit Breaker con Resilience4j
 - [ ] Agregar métricas con Micrometer
 - [ ] Implementar logging estructurado
-- [ ] Agregar tests de integración completos
 - [ ] Implementar CI/CD pipeline
-- [ ] Agregar documentación con Postman
 - [ ] Implementar autenticación JWT
 - [ ] Agregar caché con Redis
 - [ ] Implementar eventos de dominio
