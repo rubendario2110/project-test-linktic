@@ -18,6 +18,7 @@ public class PurchaseController {
     @PostMapping
     public Map<String, Object> purchase(@Valid @RequestBody PurchaseRequest req) {
         PurchaseResponse pr = service.purchase(req);
+        
         return Map.of("data", Map.of("type", "purchase", "id", pr.id(),
                 "attributes", Map.of(
                         "productId", pr.productId(),

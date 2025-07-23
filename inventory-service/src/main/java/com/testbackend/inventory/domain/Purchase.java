@@ -28,5 +28,6 @@ public class Purchase {
     private BigDecimal totalPrice;
 
     @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 }
