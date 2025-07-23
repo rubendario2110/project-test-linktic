@@ -21,13 +21,12 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain fc) throws ServletException, IOException {
         String path = req.getRequestURI();
-        // Permitir todas las peticiones GET a endpoints de productos (incluyendo /products/{id})
+
         if (path.startsWith("/products") && "GET".equals(req.getMethod())) {
             fc.doFilter(req, res);
             return;
         }
-        
-        // Para todas las demás operaciones, requerir API key
+
         String key = req.getHeader("X-INTERNAL-API-KEY");
         if (key == null || !Objects.equals(key, props.getApiKey())) {
             res.sendError(401, "INVALID_API_KEY");
