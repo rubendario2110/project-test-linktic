@@ -1,22 +1,17 @@
 spring:
   application:
     name: api-gateway
-
-server:
-  port: 8080
-
-spring:
   cloud:
     gateway:
       routes:
         - id: products-service
-          uri: lb://products-service
+          uri: lb://PRODUCTS-SERVICE
           predicates:
             - Path=/api/products/**
           filters:
             - StripPrefix=1
         - id: inventory-service
-          uri: lb://inventory-service
+          uri: lb://INVENTORY-SERVICE
           predicates:
             - Path=/api/inventory/**
           filters:
@@ -25,11 +20,18 @@ spring:
           uri: http://eureka-server:8761
           predicates:
             - Path=/eureka/**
-      default-filters:
-        - SaveSession
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
     loadbalancer:
       ribbon:
         enabled: false
+
+server:
+  port: 8080
 
 eureka:
   client:

@@ -13,6 +13,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   eureka-server:
     container_name: eureka-server
@@ -24,6 +29,12 @@ services:
     networks:
       - my_network
     restart: "no"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   api-gateway:
     container_name: api-gateway
@@ -35,7 +46,8 @@ services:
     networks:
       - my_network
     depends_on:
-      - eureka-server
+      eureka-server:
+        condition: service_healthy
     restart: "no"
 
   products-service:
@@ -53,8 +65,10 @@ services:
     networks:
       - my_network
     depends_on:
-      - postgres_db
-      - eureka-server
+      postgres_db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     restart: "no"
 
   inventory-service:
@@ -72,9 +86,12 @@ services:
     networks:
       - my_network
     depends_on:
-      - postgres_db
-      - eureka-server
-      - products-service
+      postgres_db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      products-service:
+        condition: service_started
     restart: "no"
 
 networks:

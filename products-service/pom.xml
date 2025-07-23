@@ -6,8 +6,8 @@
   <version>1.0.0</version>
   <properties>
     <java.version>17</java.version>
-    <spring.boot.version>3.2.5</spring.boot.version>
-            <spring.cloud.version>2023.0.4</spring.cloud.version>
+    <spring.boot.version>3.1.5</spring.boot.version>
+            <spring.cloud.version>2022.0.4</spring.cloud.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -78,6 +78,7 @@
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
+          <parameters>true</parameters>
         </configuration>
       </plugin>
       <plugin>
