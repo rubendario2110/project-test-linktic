@@ -1,0 +1,753 @@
+{
+	"info": {
+		"_postman_id": "linktic-microservices-collection",
+		"name": "Linktic Microservices - Test Técnico Completo",
+		"description": "Colección completa para probar los microservicios de Products e Inventory con flujo de compra completo. Incluye todos los endpoints requeridos y casos de prueba.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "linktic-microservices"
+	},
+	"item": [
+		{
+			"name": "Products Service - Microservicio 1",
+			"item": [
+				{
+					"name": "1. Crear Producto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Laptop Gaming Pro\",\n  \"price\": 1299.99,\n  \"description\": \"Laptop para gaming de alto rendimiento con RTX 4070\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						},
+						"description": "Crea un nuevo producto en el catálogo. Requiere: nombre, precio, descripción (opcional)"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extraer el ID del producto de la respuesta",
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    const productId = response.data.id;",
+									"    pm.collectionVariables.set('product_id', productId);",
+									"    console.log('Producto creado con ID:', productId);",
+									"    ",
+									"    // Validar formato JSON API",
+									"    pm.test('Formato JSON API correcto', function () {",
+									"        pm.expect(response.data).to.have.property('type');",
+									"        pm.expect(response.data).to.have.property('id');",
+									"        pm.expect(response.data).to.have.property('attributes');",
+									"        pm.expect(response.data.type).to.eql('product');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "2. Obtener Producto por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/products/{{product_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{product_id}}"
+							]
+						},
+						"description": "Obtiene un producto específico por su ID"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Producto encontrado', function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data.id).to.eql(pm.collectionVariables.get('product_id'));",
+									"    pm.expect(response.data.type).to.eql('product');",
+									"    pm.expect(response.data.attributes).to.have.property('name');",
+									"    pm.expect(response.data.attributes).to.have.property('price');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "3. Listar Productos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/products?page=0&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Lista todos los productos con paginación"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Lista de productos', function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('data');",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			],
+			"description": "Endpoints del microservicio de productos - Cumple todos los requisitos: crear, obtener por ID, listar productos"
+		},
+		{
+			"name": "Inventory Service - Microservicio 2",
+			"item": [
+				{
+					"name": "1. Consultar Inventario",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/inventory/{{product_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inventory",
+								"{{product_id}}"
+							]
+						},
+						"description": "Consulta la cantidad disponible de un producto específico. Obtiene información del producto desde el microservicio de productos."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Inventario consultado', function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data.type).to.eql('inventory');",
+									"    pm.expect(response.data.attributes).to.have.property('quantity');",
+									"    pm.expect(response.data.attributes.quantity).to.be.a('number');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "2. Actualizar Inventario",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"data\": {\n    \"attributes\": {\n      \"quantity\": 50\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/inventory/{{product_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inventory",
+								"{{product_id}}"
+							]
+						},
+						"description": "Actualiza la cantidad disponible de un producto"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Inventario actualizado', function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data.attributes.quantity).to.eql(50);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			],
+			"description": "Endpoints del microservicio de inventario - Cumple todos los requisitos: consultar, actualizar inventario"
+		},
+		{
+			"name": "Purchase Flow - Flujo de Compra Completo",
+			"item": [
+				{
+					"name": "1. Crear Producto para Compra",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"iPhone 15 Pro\",\n  \"price\": 999.99,\n  \"description\": \"Smartphone de última generación\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						},
+						"description": "Paso 1: Crear un producto para realizar la compra"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extraer el ID del producto de la respuesta",
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    const productId = response.data.id;",
+									"    pm.collectionVariables.set('product_id', productId);",
+									"    console.log('Producto creado con ID:', productId);",
+									"    ",
+									"    // Guardar precio para validaciones posteriores",
+									"    pm.collectionVariables.set('product_price', response.data.attributes.price);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "2. Configurar Inventario",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"data\": {\n    \"attributes\": {\n      \"quantity\": 10\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/inventory/{{product_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inventory",
+								"{{product_id}}"
+							]
+						},
+						"description": "Paso 2: Configurar inventario inicial del producto"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Inventario configurado', function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data.attributes.quantity).to.eql(10);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "3. Verificar Inventario",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/inventory/{{product_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inventory",
+								"{{product_id}}"
+							]
+						},
+						"description": "Paso 3: Verificar que el inventario esté configurado correctamente"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Inventario verificado', function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data.attributes.quantity).to.eql(10);",
+									"    ",
+									"    // Guardar cantidad inicial para validación posterior",
+									"    pm.collectionVariables.set('initial_quantity', response.data.attributes.quantity);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "4. Realizar Compra",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{product_id}}\",\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/purchases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						},
+						"description": "Paso 4: Realizar la compra del producto. Verifica disponibilidad, actualiza inventario y registra la compra."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Compra exitosa', function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    ",
+									"    // Validar formato JSON API",
+									"    pm.expect(response.data.type).to.eql('purchase');",
+									"    pm.expect(response.data.attributes).to.have.property('productId');",
+									"    pm.expect(response.data.attributes).to.have.property('quantity');",
+									"    pm.expect(response.data.attributes).to.have.property('unitPrice');",
+									"    pm.expect(response.data.attributes).to.have.property('totalPrice');",
+									"    pm.expect(response.data.attributes).to.have.property('createdAt');",
+									"    ",
+									"    // Validar datos de la compra",
+									"    pm.expect(response.data.attributes.productId).to.eql(pm.collectionVariables.get('product_id'));",
+									"    pm.expect(response.data.attributes.quantity).to.eql(2);",
+									"    pm.expect(response.data.attributes.unitPrice).to.eql(parseFloat(pm.collectionVariables.get('product_price')));",
+									"    ",
+									"    // Validar cálculo del precio total",
+									"    const expectedTotal = parseFloat(pm.collectionVariables.get('product_price')) * 2;",
+									"    pm.expect(response.data.attributes.totalPrice).to.eql(expectedTotal);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "5. Verificar Inventario Actualizado",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/inventory/{{product_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inventory",
+								"{{product_id}}"
+							]
+						},
+						"description": "Paso 5: Verificar que el inventario se actualizó correctamente después de la compra"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Inventario actualizado correctamente', function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    ",
+									"    // Verificar que la cantidad se redujo correctamente",
+									"    const initialQuantity = parseInt(pm.collectionVariables.get('initial_quantity'));",
+									"    const currentQuantity = response.data.attributes.quantity;",
+									"    const expectedQuantity = initialQuantity - 2;",
+									"    ",
+									"    pm.expect(currentQuantity).to.eql(expectedQuantity);",
+									"    console.log(`Inventario: ${initialQuantity} → ${currentQuantity} (reducción de 2 unidades)`);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			],
+			"description": "Flujo completo de compra: crear producto → configurar inventario → realizar compra → verificar actualización. Implementa todos los requisitos del flujo de compra."
+		},
+		{
+			"name": "Error Scenarios - Casos de Error",
+			"item": [
+				{
+					"name": "1. Compra con Producto Inexistente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"00000000-0000-0000-0000-000000000000\",\n  \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/purchases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						},
+						"description": "Prueba el manejo de error cuando se intenta comprar un producto que no existe"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Producto no encontrado', function () {",
+									"    pm.response.to.have.status(404);",
+									"    pm.expect(pm.response.text()).to.include('PRODUCT_NOT_FOUND');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "2. Compra con Inventario Insuficiente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{product_id}}\",\n  \"quantity\": 999\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/purchases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						},
+						"description": "Prueba el manejo de error cuando se intenta comprar más unidades de las disponibles"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Inventario insuficiente', function () {",
+									"    pm.response.to.have.status(422);",
+									"    pm.expect(pm.response.text()).to.include('INSUFFICIENT_STOCK');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "3. Consultar Inventario de Producto Inexistente",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-INTERNAL-API-KEY",
+								"value": "linktic-internal-key-2024"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/inventory/00000000-0000-0000-0000-000000000000",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inventory",
+								"00000000-0000-0000-0000-000000000000"
+							]
+						},
+						"description": "Prueba el manejo de error al consultar inventario de un producto que no existe"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Inventario no encontrado', function () {",
+									"    pm.response.to.have.status(422);",
+									"    pm.expect(pm.response.text()).to.include('INVENTORY_NOT_FOUND');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			],
+			"description": "Casos de prueba para verificar el manejo adecuado de errores: producto inexistente, inventario insuficiente, inventario no encontrado"
+		},
+		{
+			"name": "Health Checks",
+			"item": [
+				{
+					"name": "API Gateway Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica el estado de salud del API Gateway"
+					},
+					"response": []
+				},
+				{
+					"name": "Eureka Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8761",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8761"
+						},
+						"description": "Accede al dashboard de Eureka para ver los servicios registrados"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para verificar el estado de los servicios"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string",
+			"description": "URL base del API Gateway"
+		},
+		{
+			"key": "product_id",
+			"value": "",
+			"type": "string",
+			"description": "ID del producto (se establece automáticamente al crear un producto)"
+		},
+		{
+			"key": "product_price",
+			"value": "",
+			"type": "string",
+			"description": "Precio del producto (se establece automáticamente)"
+		},
+		{
+			"key": "initial_quantity",
+			"value": "",
+			"type": "string",
+			"description": "Cantidad inicial del inventario (se establece automáticamente)"
+		},
+		{
+			"key": "api_key",
+			"value": "linktic-internal-key-2024",
+			"type": "string",
+			"description": "API Key para autenticación entre microservicios"
+		}
+	]
+} 

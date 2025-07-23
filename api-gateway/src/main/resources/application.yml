@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: products-service
+          uri: lb://PRODUCTS-SERVICE
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - StripPrefix=1
+        - id: inventory-service
+          uri: lb://INVENTORY-SERVICE
+          predicates:
+            - Path=/api/inventory/**
+          filters:
+            - StripPrefix=1
+        - id: eureka-server
+          uri: http://eureka-server:8761
+          predicates:
+            - Path=/eureka/**
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+    loadbalancer:
+      ribbon:
+        enabled: false
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+      base-path: /actuator
+
+logging:
+  level:
+    org.springframework.cloud.gateway: debug
+    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: info
